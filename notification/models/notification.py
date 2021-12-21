@@ -9,10 +9,8 @@ class Notification(models.Model):
     params = models.CharField(max_length=255)
     date = models.DateField()
     templateID = models.ForeignKey(Template, on_delete=models.CASCADE)
-    sendMethodID = models.OneToOneField(
-        SendMethod,
-        on_delete=models.CASCADE
-    )
+    sendMethodID = models.ForeignKey(SendMethod, on_delete=models.CASCADE)
+
 
 
 

@@ -1,3 +1,5 @@
+import telepot
+import telegram_send
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
@@ -5,9 +7,10 @@ from rest_framework.views import APIView
 from notification.models import Notification, Template, SendMethod
 from notification.serializers import NotificationSerializer, TemplateSerializer, SendMethodSerializer
 from django.forms.models import model_to_dict
-from django.http import JsonResponse, response, HttpResponse
+from django.http import JsonResponse,HttpResponse
 from django.shortcuts import get_object_or_404
 from django.core.mail import EmailMessage
+import json
 
 
 @permission_classes((permissions.AllowAny,))
@@ -15,27 +18,48 @@ class NotificationView(APIView):
     def get(self, request):
         notification = Notification.objects.all()
         serializer = NotificationSerializer(instance=notification, many=True)
+
         return Response({"notification": serializer.data})
 
     def post(self, request):
-        notificationData = request.data.get('notification')
-        serializer = NotificationSerializer(data=notificationData)
-        if serializer.is_valid(raise_exception=True):
-            notification = serializer.save()
+        # notificationData = request.data.get('notification')
+        # serializer = NotificationSerializer(data=notificationData)
+        # serializer.date = datetime.datetime.today().strftime('%d-%m-%Y / %H:%M')
 
-        id = notification.templateID
-        id = int(id.id)
+        data = json.loads(request.body.decode('utf-8'))['notification']
+        params = data['params']
+        template = data['templateID_id']
+        sendMethod = data['sendMethodID_id']
 
-        template = Template.objects.get(id=id).text
+        notification = Notification(params=params, templateID=Template.objects.get(id=template), sendMethodID=SendMethod.objects.get(id=sendMethod))
+        template = Template.objects.get(id=notification.templateID.id)
+        text = template.text.replace('#', notification.params)
 
-        template = template + " у нас сегодня Акция"
+        if notification.sendMethodID.id == 1:
+            email = EmailMessage(template.name, text, to=['sniper123zoom@gmail.com'])
+            email.send()
+        elif notification.sendMethodID.id == 2:
+            # https://telepot.readthedocs.io/en/latest/
+            bot = telepot.Bot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
+            bot.sendMessage(861921150, text)#id key from chat https://api.telegram.org/bot5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8/getUpdates
+            # telegram_send.send(messages=["Wow that was easy!"])
 
-
-        email = EmailMessage('Subject', template, to=['sniper123zoom@gmail.com'])
-        email.send()
-
-
+        notification.save()
         return JsonResponse(model_to_dict(notification))
+
+
+        # if serializer.is_valid(raise_exception=True):
+        #     notification = serializer.save()
+        #
+        # id = notification.templateID
+        # id = int(id.id)
+        #
+        # template = Template.objects.get(id=id).text
+        # template = template.replace('#', notification.params)
+        # email = EmailMessage(serializer.date, template, to=['sniper123zoom@gmail.com'])
+        # email.send()
+        #
+        # return JsonResponse(model_to_dict(notification))
 
     def put(self, request, pk):
         saved_notification = get_object_or_404(Notification.objects.all(), pk=pk)
@@ -52,6 +76,7 @@ class NotificationView(APIView):
         return Response({
             "message": "Notification with id {} has been deleted.".format(pk)
         }, status=204)
+
 
 @permission_classes((permissions.AllowAny,))
 class TemplateView(APIView):
@@ -83,6 +108,7 @@ class TemplateView(APIView):
             "message": "Notification with id {} has been deleted.".format(pk)
         }, status=204)
 
+
 @permission_classes((permissions.AllowAny,))
 class SendMethodView(APIView):
     def get(self, request):
@@ -112,4 +138,3 @@ class SendMethodView(APIView):
         return Response({
             "message": "Notification with id {} has been deleted.".format(pk)
         }, status=204)
-

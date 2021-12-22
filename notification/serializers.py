@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from .models import Notification, Template, SendMethod
 
-
 class NotificationSerializer(serializers.Serializer):
+
     params = serializers.CharField(max_length=255)
-    date = serializers.DateField(
-    format = '%d.%m.%Y',
-    input_formats=['%d.%m.%Y', 'iso-8601'])
+    # date = serializers.DateField(
+    # format = '%d.%m.%Y',
+    # input_formats=['%d.%m.%Y', 'iso-8601', '1'])
     templateID_id = serializers.IntegerField()
     sendMethodID_id = serializers.IntegerField()
 
@@ -23,12 +23,14 @@ class NotificationSerializer(serializers.Serializer):
 
 
 class TemplateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
     text = serializers.CharField(max_length=255)
 
     def create(self, validated_data):
         return Template.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.text)
         instance.text = validated_data.get('text', instance.text)
         instance.save()
         return instance

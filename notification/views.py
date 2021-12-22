@@ -28,12 +28,17 @@ class NotificationView(APIView):
 
         data = json.loads(request.body.decode('utf-8'))['notification']
         params = data['params']
+
+
+
         template = data['templateID_id']
         sendMethod = data['sendMethodID_id']
 
         notification = Notification(params=params, templateID=Template.objects.get(id=template), sendMethodID=SendMethod.objects.get(id=sendMethod))
         template = Template.objects.get(id=notification.templateID.id)
-        text = template.text.replace('#', notification.params)
+
+        text = template.text.replace('#!name', params['name'])
+
 
         if notification.sendMethodID.id == 1:
             email = EmailMessage(template.name, text, to=['sniper123zoom@gmail.com'])

@@ -1,4 +1,4 @@
-#templates#
+# templates #
 для получение шаблона нужно перейти по get ссылке http://127.0.0.1:8000/api/templates
 ```javascript
      "template": {

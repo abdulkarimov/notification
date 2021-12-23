@@ -3,7 +3,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-pyt2ftlbsvhv8384xgpplfw7jxs8!hqv@box4gr@rki_sj7ckc'
-
+CORS_ORIGIN_ALLOW_ALL=True
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -16,6 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'rest_framework',
     'notification',
+    'corsheaders',
+
 ]
 
 MIDDLEWARE = [
@@ -26,7 +28,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
+
+
 
 ROOT_URLCONF = 'notification_service.urls'
 

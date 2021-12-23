@@ -37,8 +37,10 @@ class NotificationView(APIView):
         notification = Notification(params=params, templateID=Template.objects.get(id=template), sendMethodID=SendMethod.objects.get(id=sendMethod))
         template = Template.objects.get(id=notification.templateID.id)
 
-        text = template.text.replace('#!name', params['name'])
+        text = template.text
 
+        for i in params:
+            text = text.replace('#' + i, params[i])
 
         if notification.sendMethodID.id == 1:
             email = EmailMessage(template.name, text, to=['sniper123zoom@gmail.com'])
@@ -53,18 +55,18 @@ class NotificationView(APIView):
         return JsonResponse(model_to_dict(notification))
 
 
-        # if serializer.is_valid(raise_exception=True):
-        #     notification = serializer.save()
-        #
-        # id = notification.templateID
-        # id = int(id.id)
-        #
-        # template = Template.objects.get(id=id).text
-        # template = template.replace('#', notification.params)
-        # email = EmailMessage(serializer.date, template, to=['sniper123zoom@gmail.com'])
-        # email.send()
-        #
-        # return JsonResponse(model_to_dict(notification))
+        if serializer.is_valid(raise_exception=True):
+            notification = serializer.save()
+
+        id = notification.templateID
+        id = int(id.id)
+
+        template = Template.objects.get(id=id).text
+        template = template.replace('#', notification.params)
+        email = EmailMessage(serializer.date, template, to=['sniper123zoom@gmail.com'])
+        email.send()
+
+        return JsonResponse(model_to_dict(notification))
 
     def put(self, request, pk):
         saved_notification = get_object_or_404(Notification.objects.all(), pk=pk)

@@ -1,5 +1,6 @@
+# pip install telepot --upgrade
 import telepot
-import telegram_send
+# import telegram_send
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response

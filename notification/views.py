@@ -51,6 +51,7 @@ class NotificationView(APIView):
             bot = telepot.Bot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
             bot.sendMessage(861921150, text)#id key from chat https://api.telegram.org/bot5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8/getUpdates
             # telegram_send.send(messages=["Wow that was easy!"])
+            #cheeze 515039941
 
         notification.save()
         return JsonResponse(model_to_dict(notification))
@@ -132,7 +133,7 @@ class SendMethodView(APIView):
         return JsonResponse(model_to_dict(sendMethod))
 
     def put(self, request, pk):
-        saved_sendMethod = get_object_or_404(Template.objects.all(), pk=pk)
+        saved_sendMethod = get_object_or_404(SendMethod.objects.all(), pk=pk)
         data = request.data.get('sendMethod')
         serializer = SendMethodSerializer(instance=saved_sendMethod, data=data, partial=True)
         if serializer.is_valid(raise_exception=True):
@@ -141,7 +142,7 @@ class SendMethodView(APIView):
 
     def delete(self, request, pk):
         # Get object with this pk
-        sendMethod = get_object_or_404(Template.objects.all(), pk=pk)
+        sendMethod = get_object_or_404(SendMethod.objects.all(), pk=pk)
         sendMethod.delete()
         return Response({
             "message": "Notification with id {} has been deleted.".format(pk)

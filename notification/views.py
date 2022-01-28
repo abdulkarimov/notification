@@ -12,6 +12,7 @@ from django.http import JsonResponse,HttpResponse
 from django.shortcuts import get_object_or_404
 from django.core.mail import EmailMessage
 import json
+import requests
 
 
 @permission_classes((permissions.AllowAny,))
@@ -29,8 +30,6 @@ class NotificationView(APIView):
 
         data = json.loads(request.body.decode('utf-8'))['notification']
         params = data['params']
-
-
 
         template = data['templateID_id']
         sendMethod = data['sendMethodID_id']
@@ -147,3 +146,35 @@ class SendMethodView(APIView):
         return Response({
             "message": "Notification with id {} has been deleted.".format(pk)
         }, status=204)
+
+@permission_classes((permissions.AllowAny,))
+class UsersView(APIView):
+    def get(self, request , name):
+        import collections
+        url = 'https://api.telegram.org/bot5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8/getUpdates'
+        r = requests.get(url)
+        droplets = r.json()
+        # droplets = droplets['result'][0]['message']['chat']['first_name']
+        # a = set()
+        # b = set()
+        a = collections.defaultdict(list)
+
+        for i in range(0,len(droplets['result'])):
+            # a.add(droplets['result'][i]['message']['chat']['first_name'])
+            # b.add(droplets['result'][i]['message']['chat']['id'])
+
+            a[droplets['result'][i]['message']['chat']['first_name']] =droplets['result'][i]['message']['chat']['id']
+            # a.append(droplets['result'][i]['message']['chat']['id'])
+            # a.append("")
+            # a[droplets['result'][i]['message']['chat']['id']] = droplets['result'][i]['message']['chat']['first_name']
+
+
+        return Response(a.get(name))
+
+
+
+
+
+
+
+

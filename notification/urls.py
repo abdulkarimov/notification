@@ -1,5 +1,5 @@
 from django.urls import path, include
-from notification.views import NotificationView, TemplateView, SendMethodView, UsersView
+from notification.views import NotificationView, TemplateView, SendMethodView, UsersView, GreenView, YellowView
 
 app_name = 'notifications'
 urlpatterns = [
@@ -10,5 +10,7 @@ urlpatterns = [
     path('sendMethod/', SendMethodView.as_view()),
     path('sendMethod/<int:pk>', SendMethodView.as_view()),
     path('getUsers/<name>', UsersView.as_view()),
+    path('green/', GreenView.as_view()),
+    path('yellow/', YellowView.as_view()),
 
 ]

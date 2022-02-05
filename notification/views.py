@@ -1,6 +1,5 @@
 # pip install telepot --upgrade
 import telepot
-# import telegram_send
 from rest_framework import permissions
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
@@ -13,30 +12,26 @@ from django.shortcuts import get_object_or_404
 from django.core.mail import EmailMessage
 import json
 import requests
-
+from time import sleep
+import config
+import telebot
+from telebot import types
 
 @permission_classes((permissions.AllowAny,))
 class NotificationView(APIView):
     def get(self, request):
         notification = Notification.objects.all()
         serializer = NotificationSerializer(instance=notification, many=True)
-
         return Response({"notification": serializer.data})
 
     def post(self, request):
-        # notificationData = request.data.get('notification')
-        # serializer = NotificationSerializer(data=notificationData)
-        # serializer.date = datetime.datetime.today().strftime('%d-%m-%Y / %H:%M')
-
         data = json.loads(request.body.decode('utf-8'))['notification']
         params = data['params']
-
         template = data['templateID_id']
         sendMethod = data['sendMethodID_id']
 
         notification = Notification(params=params, templateID=Template.objects.get(id=template), sendMethodID=SendMethod.objects.get(id=sendMethod))
         template = Template.objects.get(id=notification.templateID.id)
-
         text = template.text
 
         for i in params:
@@ -49,15 +44,18 @@ class NotificationView(APIView):
             # https://telepot.readthedocs.io/en/latest/
             bot = telepot.Bot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
             bot.sendMessage(861921150, text)#id key from chat https://api.telegram.org/bot5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8/getUpdates
-            # telegram_send.send(messages=["Wow that was easy!"])
-            #cheeze 515039941
+            update_id = bot.getUpdates()[-1]['update_id']
+            while True:
+                sleep(2)
+                messages = bot.getUpdates(update_id)  # Получаем обновления
+                for message in messages:
+                    # Если в обновлении есть ID больше чем ID последнего сообщения, значит пришло новое сообщение
+                    if update_id < message['update_id']:
+                        update_id = message['update_id']
+                        text = f"ID пользователя: {message['message']['chat']['id']}, Сообщение: {message['message']['text']}"
+                        bot.sendMessage(861921150, text)
 
         notification.save()
-        return JsonResponse(model_to_dict(notification))
-
-
-        if serializer.is_valid(raise_exception=True):
-            notification = serializer.save()
 
         id = notification.templateID
         id = int(id.id)
@@ -154,23 +152,55 @@ class UsersView(APIView):
         url = 'https://api.telegram.org/bot5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8/getUpdates'
         r = requests.get(url)
         droplets = r.json()
-        # droplets = droplets['result'][0]['message']['chat']['first_name']
-        # a = set()
-        # b = set()
         a = collections.defaultdict(list)
 
         for i in range(0,len(droplets['result'])):
-            # a.add(droplets['result'][i]['message']['chat']['first_name'])
-            # b.add(droplets['result'][i]['message']['chat']['id'])
-
             a[droplets['result'][i]['message']['chat']['first_name']] =droplets['result'][i]['message']['chat']['id']
-            # a.append(droplets['result'][i]['message']['chat']['id'])
-            # a.append("")
-            # a[droplets['result'][i]['message']['chat']['id']] = droplets['result'][i]['message']['chat']['first_name']
-
 
         return Response(a.get(name))
 
+@permission_classes((permissions.AllowAny,))
+class GreenView(APIView):
+    def post(self, request):
+        text = json.loads(request.body.decode('utf-8'))['text']
+        bot = telepot.Bot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
+        bot.sendMessage(861921150, text)
+        return Response("ok")
+
+@permission_classes((permissions.AllowAny,))
+class YellowView(APIView):
+    def post(self, request):
+
+        telebott = telebot.TeleBot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
+        telepott = telepot.Bot('5004111173:AAGrkTPki8mSDRQUpNgU30WlmSCA8bw_dd8')
+        text = json.loads(request.body.decode('utf-8'))['text']
+        keyboard = telebot.types.ReplyKeyboardMarkup(True)
+        keyboard.row('YES')
+        telebott.send_message(861921150, text)
+
+        update_id = telepott.getUpdates()[-1]['update_id']
+
+        f = False
+        while True:
+            messages = telepott.getUpdates(update_id)
+            for message in messages:
+                # Если в обновлении есть ID больше чем ID последнего сообщения, значит пришло новое сообщение
+                if update_id < message['update_id']:
+                    update_id = message['update_id']
+                    if message['message']['text'] == 'YES':
+                        f = True
+            if f:
+                telebott.send_message(861921150, "ok")
+                break
+            else:
+                telebott.send_message(861921150, 'вы приняли Сообщение?', reply_markup=keyboard)
+                sleep(5)
+
+
+
+
+
+        return Response("ok")
 
 
 
